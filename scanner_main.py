@@ -79,8 +79,8 @@ def main():
             else:
                 print("You did not give a valid hostname or IP address, please try again.") 
     exit_bool = False
-    print("PLease select a scan type:")
-    print("\n 1: Quick scan of common ports (default) \n 2: full scan \n 3: Scan one or more specified ports")
+    print("Please select a scan type:")
+    print("\n 1: Quick scan of common ports (default) \n 2: Full scan \n 3: Scan one or more specified ports")
 
     scan_type = int(input("Selection: "))
 
