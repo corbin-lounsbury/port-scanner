@@ -10,8 +10,7 @@ def scan_host(target, port_list:list=[]):
     print("Scanning started at:" + str(datetime.now()))
     print("-" * 50)
     
-    try:
-        
+    try: 
         for port in port_list:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             socket.setdefaulttimeout(1)
