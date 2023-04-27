@@ -57,11 +57,11 @@ def run_scan(target, port_list:list=[]):
             s.close()
             
     except KeyboardInterrupt:
-            print("\n User terminated the scan!")
-            sys.exit()
+        print("\n User terminated the scan!")
+        sys.exit()
     except socket.error:
-            print("\n Host is not responding!")
-            sys.exit()
+        print("\n Host is not responding!")
+        sys.exit()
 
 QUICK_SCAN_PORTS = [22,25,53,80,110,143,443,445,3389,8080]
 
