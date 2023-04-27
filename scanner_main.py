@@ -52,8 +52,6 @@ def run_scan(target, port_list:list=[]):
         for port in port_list:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             socket.setdefaulttimeout(1)
-            
-            # returns an error indicator
             result = s.connect_ex((target,port))
             if result ==0:
                 print("Port {} is open".format(port))
@@ -67,10 +65,9 @@ def run_scan(target, port_list:list=[]):
             sys.exit()
 
 QUICK_SCAN_PORTS = [22,25,53,80,110,143,443,445,3389,8080]
+
 def main():
     if len(sys.argv) == 2:
-        
-        # translate hostname to IPv4
         host = socket.gethostbyname(sys.argv[1])
     else:
         ip_is_valid = False
