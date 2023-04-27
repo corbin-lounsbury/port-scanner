@@ -1,4 +1,3 @@
-# import pyfiglet
 import sys
 import socket
 import re
