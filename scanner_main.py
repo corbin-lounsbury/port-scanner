@@ -2,25 +2,46 @@ import sys
 import socket
 import re
 from datetime import datetime
-  
-def check_input(input):
-    ip_match = re.match(r"[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}", input)
-    hostname_match = is_valid_hostname(input)
-    return bool(ip_match or hostname_match)
+import ipaddress
+from bin.scanner import scan_host, scan_network
+
+def build_network_list(cidr_range:ipaddress.IPv4Network):
+    network_list_return = list(cidr_range.hosts())
+    return network_list_return
+
+def is_ip(input):
+    try:
+        ip_match = ipaddress.ip_address(input)
+    except ValueError:
+        ip_match = False
+    return bool(ip_match)
+
+def is_network(input):
+    try:
+        cidr_block = ipaddress.ip_network(input)
+        if cidr_block.prefixlen == 32:
+            return False
+        else: 
+            network_match = True
+    except ValueError:
+        network_match = False
+    return bool(network_match)
 
 def is_valid_hostname(hostname):
     if hostname[-1] == ".":
         hostname = hostname[:-1]
     if len(hostname) > 253:
         return False
+    try: 
+        labels = hostname.split(".")
 
-    labels = hostname.split(".")
+        if re.match(r"[0-9]+$", labels[-1]):
+            return False
 
-    if re.match(r"[0-9]+$", labels[-1]):
-        return False
-
-    allowed = re.compile(r"(?!-)[a-z0-9-]{1,63}(?<!-)$", re.IGNORECASE)
-    return all(allowed.match(label) for label in labels)    
+        allowed = re.compile(r"(?!-)[a-z0-9-]{1,63}(?<!-)$", re.IGNORECASE)
+        return all(allowed.match(label) for label in labels)
+    except:
+        return False    
 
 def user_port_list() -> list:
     port_list_return = list()
@@ -38,47 +59,41 @@ def user_port_list() -> list:
             
     return port_list_return
 
-def run_scan(target, port_list:list=[]):
-    if not any(port_list):
-        port_list.extend(range(1, 65535))
-    print("-" * 50)
-    print("Scanning all ports on target: " + target)
-    print("Scanning started at:" + str(datetime.now()))
-    print("-" * 50)
-    
-    try:
-        
-        for port in port_list:
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            socket.setdefaulttimeout(1)
-            result = s.connect_ex((target,port))
-            if result ==0:
-                print("Port {} is open".format(port))
-            s.close()
-    except KeyboardInterrupt:
-        print("\n User terminated the scan!")
-        sys.exit()
-    except socket.error:
-        print("\n Host is not responding!")
-        sys.exit()
-    finally:
-        print("Scan complete! Results are above.")
-
 QUICK_SCAN_PORTS = [22,25,53,80,110,143,443,445,3389,8080]
 
 def main():
     if len(sys.argv) == 2:
-        host = socket.gethostbyname(sys.argv[1])
+        if bool(is_ip(sys.argv)) or bool(is_network(sys.argv)) or bool(is_valid_hostname(sys.argv)):
+            user_input = sys.argv[1]
+
     else:
-        ip_is_valid = False
+        input_valid = False
         print("No arguments passed")
-        while not ip_is_valid:
-            user_input=input("Please enter a fully qualified hostname or IPv4 address: ")
-            if check_input(user_input):
-                host = socket.gethostbyname(user_input)
-                ip_is_valid = True
+        while not input_valid:
+            user_input=input("Please enter a fully qualified hostname (exmaple.com), IPv4 address (172.16.1.1), or IPv4 network CIDR block (172.16.1.0/24): ")
+            if bool(is_ip(user_input)) or bool(is_network(user_input)) or bool(is_valid_hostname(user_input)):
+                input_valid = True
             else:
-                print("You did not give a valid hostname or IP address, please try again.") 
+                print("You did not supply a valid input, please try again")
+
+
+    host_list = list()
+    if bool(is_valid_hostname(user_input)):
+        print("A hostname was provided. Scanner will get the IP for it only scan that host")
+        user_input = socket.gethostbyname(user_input)
+        ip_address = ipaddress.IPv4Address(user_input)
+        host_list.append(ip_address)
+
+    if bool(is_ip(user_input)):
+        print("A single host was provided. Scanner will only scan that host")
+        ip_address = ipaddress.IPv4Address(user_input)
+        host_list.append(ip_address)
+
+    if bool(is_network(user_input)):
+        print("A network CIDR block was provided. A list of hosts will be passed to the scanner ")
+        cidr_block = ipaddress.IPv4Network(user_input)
+        host_list = build_network_list(cidr_block)
+
     exit_bool = False
 
     while not exit_bool:
@@ -87,19 +102,29 @@ def main():
         scan_type = int(input("Selection: "))
         match scan_type:
             case 1:
-                run_scan(host, QUICK_SCAN_PORTS)
+                if len(host_list) == 1:
+                    scan_host(host_list[0], QUICK_SCAN_PORTS)
+                else:
+                    scan_network(host_list,QUICK_SCAN_PORTS)
 
             case 2:
-                run_scan(host)
+                if len(host_list) == 1:
+                    scan_host(host_list[0])
+                else:
+                    scan_network(host_list)
 
             case 3:
                 user_ports = user_port_list()
-                run_scan(host, user_ports)
+                if len(host_list[0]) == 1:
+                    scan_host(host_list, user_ports)
+                else:
+                    scan_network(host_list, user_ports)
 
             case 0:
+                print("Exiting port scanner")
                 exit_bool = True
             case _:
-                run_scan(host, QUICK_SCAN_PORTS)
+                scan_host(host_list, QUICK_SCAN_PORTS)
 
 if __name__ == '__main__':
     main()
