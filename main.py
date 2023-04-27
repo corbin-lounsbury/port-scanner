@@ -1,7 +1,6 @@
 import sys
 import socket
 import re
-from datetime import datetime
 import ipaddress
 from bin.scanner import scan_host, scan_network
 
@@ -78,14 +77,15 @@ def main():
 
 
     host_list = list()
-    if bool(is_valid_hostname(user_input)):
-        print("A hostname was provided. Scanner will get the IP for it only scan that host")
-        user_input = socket.gethostbyname(user_input)
-        ip_address = ipaddress.IPv4Address(user_input)
-        host_list.append(ip_address)
 
     if bool(is_ip(user_input)):
         print("A single host was provided. Scanner will only scan that host")
+        ip_address = ipaddress.IPv4Address(user_input)
+        host_list.append(ip_address)
+
+    if bool(is_valid_hostname(user_input)):
+        print("A hostname was provided. Scanner will get the IP for it only scan that host")
+        user_input = socket.gethostbyname(user_input)
         ip_address = ipaddress.IPv4Address(user_input)
         host_list.append(ip_address)
 
