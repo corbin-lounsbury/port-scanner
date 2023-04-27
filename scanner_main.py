@@ -55,13 +55,14 @@ def run_scan(target, port_list:list=[]):
             if result ==0:
                 print("Port {} is open".format(port))
             s.close()
-            
     except KeyboardInterrupt:
         print("\n User terminated the scan!")
         sys.exit()
     except socket.error:
         print("\n Host is not responding!")
         sys.exit()
+    finally:
+        print("Scan complete! Results are above.")
 
 QUICK_SCAN_PORTS = [22,25,53,80,110,143,443,445,3389,8080]
 
@@ -79,23 +80,22 @@ def main():
             else:
                 print("You did not give a valid hostname or IP address, please try again.") 
     exit_bool = False
-    print("Please select a scan type:")
-    print("\n 1: Quick scan of common ports (default) \n 2: Full scan \n 3: Scan one or more specified ports \n 0: Quit the program")
-
-    scan_type = int(input("Selection: "))
 
     while not exit_bool:
+        print("Please select a scan type:")
+        print("\n 1: Quick scan of common ports (default) \n 2: Full scan \n 3: Scan one or more specified ports \n 0: Quit the program")
+        scan_type = int(input("Selection: "))
         match scan_type:
             case 1:
                 run_scan(host, QUICK_SCAN_PORTS)
-                exit_bool = True
+
             case 2:
                 run_scan(host)
-                exit_bool = True
+
             case 3:
                 user_ports = user_port_list()
                 run_scan(host, user_ports)
-                exit_bool = True
+
             case 0:
                 exit_bool = True
             case _:
