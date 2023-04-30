@@ -2,6 +2,7 @@ import sys
 import socket
 import re
 import ipaddress
+from pprint import pprint
 from bin.scanner import scan_host, scan_network
 
 def build_network_list(cidr_range:ipaddress.IPv4Network):
@@ -95,7 +96,8 @@ def main():
         host_list = build_network_list(cidr_block)
 
     exit_bool = False
-
+    results_list = list()
+    
     while not exit_bool:
         print("Please select a scan type:")
         print("\n 1: Quick scan of common ports (default) \n 2: Full scan \n 3: Scan one or more specified ports \n 0: Quit the program")
@@ -103,28 +105,37 @@ def main():
         match scan_type:
             case 1:
                 if len(host_list) == 1:
-                    scan_host(host_list[0], QUICK_SCAN_PORTS)
+                    results_list.append(scan_host(host_list[0], QUICK_SCAN_PORTS))
                 else:
-                    scan_network(host_list,QUICK_SCAN_PORTS)
+                    results_list = scan_network(host_list,QUICK_SCAN_PORTS)
 
             case 2:
                 if len(host_list) == 1:
-                    scan_host(host_list[0])
+                    results_list.append(scan_host(host_list[0]))
                 else:
-                    scan_network(host_list)
+                    results_list = scan_network(host_list)
 
             case 3:
                 user_ports = user_port_list()
                 if len(host_list[0]) == 1:
-                    scan_host(host_list, user_ports)
+                    results_list.append(scan_host(host_list, user_ports))
                 else:
-                    scan_network(host_list, user_ports)
+                    results_list = scan_network(host_list, user_ports)
 
+            case 9:
+                if bool(results_list):
+                    for result in results_list:
+                        print(f"Open ports for {result.host}")
+                        print(*result.open_ports)
+                else:
+                    print("There are no results in memory. Please run a scan before attempting to display results.")
+            
             case 0:
                 print("Exiting port scanner")
                 exit_bool = True
+
             case _:
-                scan_host(host_list, QUICK_SCAN_PORTS)
+                results_list.append(scan_host(host_list, QUICK_SCAN_PORTS))
 
 if __name__ == '__main__':
     main()
