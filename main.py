@@ -100,7 +100,10 @@ def main():
     
     while not exit_bool:
         print("Please select a scan type:")
-        print("\n 1: Quick scan of common ports (default) \n 2: Full scan \n 3: Scan one or more specified ports \n 0: Quit the program")
+        print("\n 1: Quick scan of common ports (default) \n 2: Full scan \n 3: Scan one or more specified ports")
+        if results_list:
+            print(" 9: Display results")
+        print(" 0: Exit")
         scan_type = int(input("Selection: "))
         match scan_type:
             case 1:
