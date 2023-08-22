@@ -11,6 +11,9 @@ def build_network_list(cidr_range:ipaddress.IPv4Network):
 
     Args:
         cidr_range (ipaddress.IPv4Network): A network CIDR block
+
+    Returns:
+        list: A list of hosts in the network CIDR block
     '''
     network_list_return = list(cidr_range.hosts())
     return network_list_return
