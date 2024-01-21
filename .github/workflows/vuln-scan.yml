@@ -9,7 +9,8 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-20.04
-    permissions: security-events:write
+    permissions: 
+      security-events: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
